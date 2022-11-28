@@ -11,6 +11,7 @@ import {
   fetchTokenName,
   fetchTokenDecimals,
 } from "./utils";
+import { log } from "@graphprotocol/graph-ts";
 
 export function handlePairCreated(event: PairCreated): void {
   // let factory = BullionFXFactory.load(FACTORY_ADDRESS);
@@ -31,9 +32,7 @@ export function handlePairCreated(event: PairCreated): void {
     token0.name = fetchTokenName(event.params.token0);
     token0.symbol = fetchTokenSymbol(event.params.token0);
     let decimals = fetchTokenDecimals(event.params.token0);
-    if (decimals === null) {
-      return;
-    }
+    // log.error(`token0 block: {}, tokenAddress: {}, name: {}`, [event.block.number.toString(), event.params.token0.toHex(), token0.name]);
     token0.decimals = decimals;
     token0.derivedUSD = ZERO_BD;
     token0.tradeVolume = ZERO_BD;
@@ -50,9 +49,7 @@ export function handlePairCreated(event: PairCreated): void {
     token1.name = fetchTokenName(event.params.token1);
     token1.symbol = fetchTokenSymbol(event.params.token1);
     let decimals = fetchTokenDecimals(event.params.token1);
-    if (decimals === null) {
-      return;
-    }
+    // log.error(`block: {}, tokenAddress: {}, name: {}`, [event.block.number.toString(), event.params.token1.toHex(), token1.name]);
     token1.decimals = decimals;
     token1.derivedUSD = ZERO_BD;
     token1.tradeVolume = ZERO_BD;

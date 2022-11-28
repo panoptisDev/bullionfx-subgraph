@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { BigInt, BigDecimal, store } from "@graphprotocol/graph-ts";
+import { BigInt, BigDecimal, store, log } from "@graphprotocol/graph-ts";
 import {
   Pair,
   Token,
@@ -16,7 +16,12 @@ import { findUsdPerToken, getTrackedVolumeUSD, getTrackedLiquidityUSD } from "./
 import { convertTokenToDecimal, ADDRESS_ZERO, BULLIONFX_FACTORY_ADDRESS, ONE_BI, ZERO_BD, BI_18 } from "./utils";
 
 function isCompleteMint(mintId: string): boolean {
-  return MintEvent.load(mintId).sender !== null; // sufficient checks
+  let mint = MintEvent.load(mintId);
+  if (mint === null) {
+    log.error(`isCompleteMint: mint {} not found`, [mintId]);
+    return false;
+  }
+  return mint.sender !== null; // sufficient checks
 }
 
 export function handleTransfer(event: Transfer): void {
@@ -27,6 +32,10 @@ export function handleTransfer(event: Transfer): void {
 
   // get pair and load contract
   let pair = Pair.load(event.address.toHex());
+  if (pair === null) {
+    log.error(`handleTransfer: pair {} not found`, [event.address.toHex()]);
+    return;
+  }
 
   // liquidity token amount being transferred
   let value = convertTokenToDecimal(event.params.value, BI_18);
@@ -103,6 +112,10 @@ export function handleTransfer(event: Transfer): void {
     let burn: BurnEvent;
     if (burns.length > 0) {
       let currentBurn = BurnEvent.load(burns[burns.length - 1]);
+      if (currentBurn === null) {
+        log.error(`handleTransfer: burn event not found`, []);
+        return;
+      }
       if (currentBurn.needsComplete) {
         burn = currentBurn as BurnEvent;
       } else {
@@ -129,6 +142,10 @@ export function handleTransfer(event: Transfer): void {
     // if this logical burn included a fee mint, account for this
     if (mints.length !== 0 && !isCompleteMint(mints[mints.length - 1])) {
       let mint = MintEvent.load(mints[mints.length - 1]);
+      if (mint === null) {
+        log.error(`handleTransfer: mint event not found`, []);
+        return;
+      }
       burn.feeTo = mint.to;
       burn.feeLiquidity = mint.liquidity;
       // remove the logical mint
@@ -163,9 +180,25 @@ export function handleTransfer(event: Transfer): void {
 
 export function handleSync(event: Sync): void {
   let pair = Pair.load(event.address.toHex());
+  if (pair === null) {
+    log.error(`handleSync: pair {} not found`, [event.address.toHex()]);
+    return;
+  }
   let token0 = Token.load(pair.token0);
+  if (token0 === null) {
+    log.error(`handleSync: token0 {} not found`, [pair.token0]);
+    return;
+  }
   let token1 = Token.load(pair.token1);
+  if (token1 === null) {
+    log.error(`handleSync: token1 {} not found`, [pair.token1]);
+    return;
+  }
   let bullionfx = BullionFXFactory.load(BULLIONFX_FACTORY_ADDRESS);
+  if (bullionfx === null) {
+    log.error(`handleSync: bullionfx {} not found`, [BULLIONFX_FACTORY_ADDRESS]);
+    return;
+  }
 
   if (pair.isBullionFX === true) {
     // reset factory liquidity by subtracting only tracked liquidity
@@ -230,14 +263,38 @@ export function handleSync(event: Sync): void {
 
 export function handleMint(event: Mint): void {
   let transaction = Transaction.load(event.transaction.hash.toHex());
+  if (transaction === null) {
+    log.error(`handleMint: transaction {} not found`, [event.transaction.hash.toHex()]);
+    return;
+  }
   let mints = transaction.mints;
   let mint = MintEvent.load(mints[mints.length - 1]);
+  if (mint === null) {
+    log.error(`handleMint: mint event not found`, []);
+    return;
+  }
 
   let pair = Pair.load(event.address.toHex());
+  if (pair === null) {
+    log.error(`handleMint: pair {} not found`, [event.address.toHex()]);
+    return;
+  }
   let bullionfx = BullionFXFactory.load(BULLIONFX_FACTORY_ADDRESS);
+  if (bullionfx === null) {
+    log.error(`handleMint: bullionfx {} not found`, [BULLIONFX_FACTORY_ADDRESS]);
+    return;
+  }
 
   let token0 = Token.load(pair.token0);
+  if (token0 === null) {
+    log.error(`handleMint: token0 {} not found`, [pair.token0]);
+    return;
+  }
   let token1 = Token.load(pair.token1);
+  if (token1 === null) {
+    log.error(`handleMint: token1 {} not found`, [pair.token1]);
+    return;
+  }
 
   // update exchange info (except balances, sync will cover that)
   let token0Amount = convertTokenToDecimal(event.params.amount0, token0.decimals);
@@ -287,13 +344,33 @@ export function handleBurn(event: Burn): void {
 
   let burns = transaction.burns;
   let burn = BurnEvent.load(burns[burns.length - 1]);
+  if (burn === null) {
+    log.error(`handleBurn: burn event not found`, []);
+    return;
+  }
 
   let pair = Pair.load(event.address.toHex());
+  if (pair === null) {
+    log.error(`handleBurn: pair {} not found`, [event.address.toHex()]);
+    return;
+  }
   let bullionfx = BullionFXFactory.load(BULLIONFX_FACTORY_ADDRESS);
+  if (bullionfx === null) {
+    log.error(`handleBurn: bullionfx {} not found`, [BULLIONFX_FACTORY_ADDRESS]);
+    return;
+  }
 
   //update token info
   let token0 = Token.load(pair.token0);
   let token1 = Token.load(pair.token1);
+  if (token0 === null) {
+    log.error(`handleBurn: token0 {} not found`, [pair.token0]);
+    return;
+  }
+  if (token1 === null) {
+    log.error(`handleBurn: token1 {} not found`, [pair.token1]);
+    return;
+  }
   let token0Amount = convertTokenToDecimal(event.params.amount0, token0.decimals);
   let token1Amount = convertTokenToDecimal(event.params.amount1, token1.decimals);
 
@@ -337,8 +414,20 @@ export function handleBurn(event: Burn): void {
 
 export function handleSwap(event: Swap): void {
   let pair = Pair.load(event.address.toHex());
+  if (pair === null) {
+    log.error(`handleSwap: pair {} not found`, [event.address.toHex()]);
+    return;
+  }
   let token0 = Token.load(pair.token0);
+  if (token0 === null) {
+    log.error(`handleSwap: token0 {} not found`, [pair.token0.toString()]);
+    return;
+  }
   let token1 = Token.load(pair.token1);
+  if (token1 === null) {
+    log.error(`handleSwap: token1 {} not found`, [pair.token1.toString()]);
+    return;
+  }
   let amount0In = convertTokenToDecimal(event.params.amount0In, token0.decimals);
   let amount1In = convertTokenToDecimal(event.params.amount1In, token1.decimals);
   let amount0Out = convertTokenToDecimal(event.params.amount0Out, token0.decimals);
@@ -399,6 +488,10 @@ export function handleSwap(event: Swap): void {
   if (pair.isBullionFX === true) {
     // update global values, only used tracked amounts for volume
     let bullionfx = BullionFXFactory.load(BULLIONFX_FACTORY_ADDRESS);
+    if (bullionfx === null) {
+      log.error(`handleSwap: bullionfx {} not found`, [BULLIONFX_FACTORY_ADDRESS]);
+      return;
+    }
     bullionfx.totalVolumeUSD = bullionfx.totalVolumeUSD.plus(trackedAmountUSD);
     // bullionfx.totalVolumeBNB = bullionfx.totalVolumeBNB.plus(trackedAmountBNB);
     bullionfx.untrackedVolumeUSD = bullionfx.untrackedVolumeUSD.plus(derivedAmountUSD);
@@ -457,23 +550,29 @@ export function handleSwap(event: Swap): void {
   if (pair.isBullionFX === true) {
     let bullionFXDayData = updateBullionFXDayData(event);
     // swap specific updating
-    bullionFXDayData.dailyVolumeUSD = bullionFXDayData.dailyVolumeUSD.plus(trackedAmountUSD);
-    // bullionFXDayData.dailyVolumeBNB = bullionFXDayData.dailyVolumeBNB.plus(trackedAmountBNB);
-    bullionFXDayData.dailyVolumeUntracked = bullionFXDayData.dailyVolumeUntracked.plus(derivedAmountUSD);
-    bullionFXDayData.save();
+    if (bullionFXDayData !== null) {
+      bullionFXDayData.dailyVolumeUSD = bullionFXDayData.dailyVolumeUSD.plus(trackedAmountUSD);
+      // bullionFXDayData.dailyVolumeBNB = bullionFXDayData.dailyVolumeBNB.plus(trackedAmountBNB);
+      bullionFXDayData.dailyVolumeUntracked = bullionFXDayData.dailyVolumeUntracked.plus(derivedAmountUSD);
+      bullionFXDayData.save();
+    }
   }
 
   // swap specific updating for pair
-  pairDayData.dailyVolumeToken0 = pairDayData.dailyVolumeToken0.plus(amount0Total);
-  pairDayData.dailyVolumeToken1 = pairDayData.dailyVolumeToken1.plus(amount1Total);
-  pairDayData.dailyVolumeUSD = pairDayData.dailyVolumeUSD.plus(trackedAmountUSD);
-  pairDayData.save();
+  if (pairDayData !== null) {
+    pairDayData.dailyVolumeToken0 = pairDayData.dailyVolumeToken0.plus(amount0Total);
+    pairDayData.dailyVolumeToken1 = pairDayData.dailyVolumeToken1.plus(amount1Total);
+    pairDayData.dailyVolumeUSD = pairDayData.dailyVolumeUSD.plus(trackedAmountUSD);
+    pairDayData.save();
+  }
 
   // update hourly pair data
-  pairHourData.hourlyVolumeToken0 = pairHourData.hourlyVolumeToken0.plus(amount0Total);
-  pairHourData.hourlyVolumeToken1 = pairHourData.hourlyVolumeToken1.plus(amount1Total);
-  pairHourData.hourlyVolumeUSD = pairHourData.hourlyVolumeUSD.plus(trackedAmountUSD);
-  pairHourData.save();
+  if (pairHourData !== null) {
+    pairHourData.hourlyVolumeToken0 = pairHourData.hourlyVolumeToken0.plus(amount0Total);
+    pairHourData.hourlyVolumeToken1 = pairHourData.hourlyVolumeToken1.plus(amount1Total);
+    pairHourData.hourlyVolumeUSD = pairHourData.hourlyVolumeUSD.plus(trackedAmountUSD);
+    pairHourData.save();
+  }
 
   // swap specific updating for token0
   token0DayData.dailyVolumeToken = token0DayData.dailyVolumeToken.plus(amount0Total);

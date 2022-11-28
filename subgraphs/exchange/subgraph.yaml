@@ -1,4 +1,4 @@
-specVersion: 0.0.2
+specVersion: 0.0.6
 description: BullionFX is a decentralized protocol for automated token exchange on Ethereum.
 schema:
   file: ./schema.graphql
@@ -9,10 +9,10 @@ dataSources:
     source:
       address: "0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"
       abi: Factory
-      startBlock: 10794229
+      startBlock: 10978288
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./mappings/factory.ts
       entities:
@@ -39,7 +39,7 @@ dataSources:
       startBlock: 15587510
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./mappings/factory.ts
       entities:
@@ -65,7 +65,7 @@ templates:
       abi: Pair
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./mappings/core.ts
       entities:

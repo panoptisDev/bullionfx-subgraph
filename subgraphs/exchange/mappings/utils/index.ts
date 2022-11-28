@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { BigInt, BigDecimal, Address } from "@graphprotocol/graph-ts";
+import { BigInt, BigDecimal, Address, log } from "@graphprotocol/graph-ts";
 import { ERC20 } from "../../generated/BullionFXFactory/ERC20";
 import { ERC20NameBytes } from "../../generated/BullionFXFactory/ERC20NameBytes";
 import { ERC20SymbolBytes } from "../../generated/BullionFXFactory/ERC20SymbolBytes";
@@ -64,9 +64,10 @@ export function fetchTokenName(tokenAddress: Address): string {
   let nameResult = contract.try_name();
   if (nameResult.reverted) {
     let nameResultBytes = contractNameBytes.try_name();
+    log.error(`block: 10978289, fetch name reverted {}`, [nameResultBytes.value.toHex()]);
     if (!nameResultBytes.reverted) {
       if (!isNullEthValue(nameResultBytes.value.toHex())) {
-        nameValue = nameResultBytes.value.toString();
+        nameValue = nameResultBytes.value.toString() || "undefined";
       }
     }
   } else {
@@ -77,7 +78,7 @@ export function fetchTokenName(tokenAddress: Address): string {
 
 export function fetchTokenDecimals(tokenAddress: Address): BigInt {
   let contract = ERC20.bind(tokenAddress);
-  let decimalValue = null;
+  let decimalValue = 0;
   let decimalResult = contract.try_decimals();
   if (!decimalResult.reverted) {
     decimalValue = decimalResult.value;

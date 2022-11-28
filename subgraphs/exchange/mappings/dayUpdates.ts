@@ -1,11 +1,15 @@
 /* eslint-disable prefer-const */
 import { PairHourData } from "../generated/schema";
-import { BigInt, BigDecimal, ethereum } from "@graphprotocol/graph-ts";
+import { BigInt, ethereum, log } from "@graphprotocol/graph-ts";
 import { Pair, Token, BullionFXFactory, BullionFXDayData, PairDayData, TokenDayData } from "../generated/schema";
 import { ONE_BI, ZERO_BD, ZERO_BI, BULLIONFX_FACTORY_ADDRESS } from "./utils";
 
-export function updateBullionFXDayData(event: ethereum.Event): BullionFXDayData {
+export function updateBullionFXDayData(event: ethereum.Event): BullionFXDayData | null {
   let bullionfx = BullionFXFactory.load(BULLIONFX_FACTORY_ADDRESS);
+  if (bullionfx === null) {
+    log.error(`updateBullionFXDayData: bullionfx {} not found`, [BULLIONFX_FACTORY_ADDRESS]);
+    return null;
+  }
   let timestamp = event.block.timestamp.toI32();
   let dayID = timestamp / 86400;
   let dayStartTimestamp = dayID * 86400;
@@ -28,12 +32,16 @@ export function updateBullionFXDayData(event: ethereum.Event): BullionFXDayData 
   return bullionFXDayData as BullionFXDayData;
 }
 
-export function updatePairDayData(event: ethereum.Event): PairDayData {
+export function updatePairDayData(event: ethereum.Event): PairDayData | null {
   let timestamp = event.block.timestamp.toI32();
   let dayID = timestamp / 86400;
   let dayStartTimestamp = dayID * 86400;
   let dayPairID = event.address.toHex().concat("-").concat(BigInt.fromI32(dayID).toString());
   let pair = Pair.load(event.address.toHex());
+  if (pair === null) {
+    log.error(`updatePairDayData: pair {} not found`, [event.address.toHex()]);
+    return null;
+  }
   let pairDayData = PairDayData.load(dayPairID);
   if (pairDayData === null) {
     pairDayData = new PairDayData(dayPairID);
@@ -56,12 +64,16 @@ export function updatePairDayData(event: ethereum.Event): PairDayData {
   return pairDayData as PairDayData;
 }
 
-export function updatePairHourData(event: ethereum.Event): PairHourData {
+export function updatePairHourData(event: ethereum.Event): PairHourData | null {
   let timestamp = event.block.timestamp.toI32();
   let hourIndex = timestamp / 3600;
   let hourStartUnix = hourIndex * 3600;
   let hourPairID = event.address.toHex().concat("-").concat(BigInt.fromI32(hourIndex).toString());
   let pair = Pair.load(event.address.toHex());
+  if (pair === null) {
+    log.error(`updatePairHourData: pair {} not found`, [event.address.toHex()]);
+    return null;
+  }
   let pairHourData = PairHourData.load(hourPairID);
   if (pairHourData === null) {
     pairHourData = new PairHourData(hourPairID);

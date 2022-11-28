@@ -1,5 +1,5 @@
 /* eslint-disable prefer-const */
-import { BigDecimal, Address } from "@graphprotocol/graph-ts/index";
+import { BigDecimal, Address, log } from "@graphprotocol/graph-ts/index";
 import { Pair, Token } from "../generated/schema";
 import { ZERO_BD, sushiFactoryContract, bullionFXFactoryContract, ADDRESS_ZERO, ONE_BD } from "./utils";
 
@@ -43,12 +43,24 @@ export function findUsdPerToken(token: Token, isBullionFX: boolean): BigDecimal 
       sushiFactoryContract.getPair(Address.fromString(token.id), Address.fromString(WHITELIST[i]));
     if (pairAddress.toHex() != ADDRESS_ZERO) {
       let pair = Pair.load(pairAddress.toHex());
+      if (pair === null) {
+        log.error(`findUsdPerToken: pair {} not found`, [pairAddress.toHex()]);
+        return ZERO_BD;
+      }
       if (pair.token0 == token.id && pair.reserveUSD.gt(MINIMUM_LIQUIDITY_THRESHOLD_USD)) {
         let token1 = Token.load(pair.token1);
+        if (token1 === null) {
+          log.error(`findUsdPerToken: token1 {} not found`, [pair.token1]);
+          return ZERO_BD;
+        }
         return pair.token1Price.times(token1.derivedUSD as BigDecimal); // return token1 per our token * BNB per token 1
       }
       if (pair.token1 == token.id && pair.reserveUSD.gt(MINIMUM_LIQUIDITY_THRESHOLD_USD)) {
         let token0 = Token.load(pair.token0);
+        if (token0 === null) {
+          log.error(`findUsdPerToken: token0 {} not found`, [pair.token0]);
+          return ZERO_BD;
+        }
         return pair.token0Price.times(token0.derivedUSD as BigDecimal); // return token0 per our token * BNB per token 0
       }
     }

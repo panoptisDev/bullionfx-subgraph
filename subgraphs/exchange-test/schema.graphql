@@ -29,11 +29,11 @@ type BullionFXFactory @entity {
 type Token @entity {
   id: ID!
 
-  "Name"
+  # "Name"
   name: String!
-  "Symbol"
+  # "Symbol"
   symbol: String!
-  "Decimals"
+  # "Decimals"
   decimals: BigInt!
 
   # token specific volume
