@@ -75,7 +75,10 @@ export function handleTransfer(event: Transfer): void {
       transaction.mints = mints.concat([mint.id]);
 
       // save entities
-      transaction.save();
+
+      if (pair.isBullionFX) {
+        transaction.save();
+      }
     }
   }
 
@@ -99,7 +102,10 @@ export function handleTransfer(event: Transfer): void {
     // against unintended side effects for other code paths.
     burns.push(burn.id);
     transaction.burns = burns;
-    transaction.save();
+
+    if (pair.isBullionFX) {
+      transaction.save();
+    }
   }
 
   // burn
@@ -156,7 +162,10 @@ export function handleTransfer(event: Transfer): void {
       // side effects for other code paths.
       mints.pop();
       transaction.mints = mints;
-      transaction.save();
+
+      if (pair.isBullionFX) {
+        transaction.save();
+      }
     }
     burn.save();
     // if accessing last one, replace it
@@ -172,10 +181,16 @@ export function handleTransfer(event: Transfer): void {
       burns.push(burn.id);
     }
     transaction.burns = burns;
-    transaction.save();
+
+    if (pair.isBullionFX) {
+      transaction.save();
+    }
   }
 
-  transaction.save();
+
+  if (pair.isBullionFX) {
+    transaction.save();
+  }
 }
 
 export function handleSync(event: Sync): void {
@@ -539,7 +554,10 @@ export function handleSwap(event: Swap): void {
   // against unintended side effects for other code paths.
   swaps.push(swap.id);
   transaction.swaps = swaps;
-  transaction.save();
+
+  if (pair.isBullionFX) {
+    transaction.save();
+  }
 
   // update day entities
   let pairDayData = updatePairDayData(event);
