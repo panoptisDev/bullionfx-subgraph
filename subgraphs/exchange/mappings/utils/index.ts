@@ -64,7 +64,7 @@ export function fetchTokenName(tokenAddress: Address): string {
   let nameResult = contract.try_name();
   if (nameResult.reverted) {
     let nameResultBytes = contractNameBytes.try_name();
-    log.error(`block: 10978289, fetch name reverted {}`, [nameResultBytes.value.toHex()]);
+    log.error(`block:, fetch token name reverted`, []);
     if (!nameResultBytes.reverted) {
       if (!isNullEthValue(nameResultBytes.value.toHex())) {
         nameValue = nameResultBytes.value.toString() || "undefined";
