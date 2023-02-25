@@ -3,8 +3,9 @@
   "description": "BullionFX Subgraph",
   "version": "2.0.0",
   "scripts": {
-    "codegen": "graph codegen subgraph.yaml",
-    "build": "graph build subgraph.yaml",
-    "deploy": "graph deploy enjoydream420/bullionfx_mainnet_exchange_t --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/"
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy --studio fullstackdevss/bullionfx-dex",
+    "create-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 fullstackdevss/bullionfx-dex"
   }
 }

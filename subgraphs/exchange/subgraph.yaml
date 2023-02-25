@@ -34,9 +34,9 @@ dataSources:
     name: BullionFXFactory
     network: mainnet
     source:
-      address: "0x550fB01B6022fc986390f9a10278383F63d1b208"
+      address: "0x5E7CfE3DB397d3DF3F516d79a072F4C2ae5f39bb"
       abi: Factory
-      startBlock: 15587510
+      startBlock: 16321793
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

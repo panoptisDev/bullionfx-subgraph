@@ -6,7 +6,7 @@ import { ERC20SymbolBytes } from "../../generated/BullionFXFactory/ERC20SymbolBy
 import { Factory as FactoryContract } from "../../generated/templates/Pair/Factory";
 
 export let ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
-export let BULLIONFX_FACTORY_ADDRESS = "0x550fB01B6022fc986390f9a10278383F63d1b208";
+export let BULLIONFX_FACTORY_ADDRESS = "0x5E7CfE3DB397d3DF3F516d79a072F4C2ae5f39bb";
 export let SUSHI_FACTORY_ADDRESS = "0xC0AEe478e3658e2610c5F7A4A2E1777cE9e4f2Ac"
 
 export let ZERO_BI = BigInt.fromI32(0);
