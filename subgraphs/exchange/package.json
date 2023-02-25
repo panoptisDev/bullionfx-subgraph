@@ -6,6 +6,7 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "graph deploy --studio fullstackdevss/bullionfx-dex",
-    "create-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 fullstackdevss/bullionfx-dex"
+    "create-local": "graph create --node http://localhost:8020/ fullstackdevss/bullionfx-dex",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 fullstackdevss/bullionfx-dex"
   }
 }
