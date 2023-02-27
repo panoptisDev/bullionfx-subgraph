@@ -15,6 +15,8 @@ import { updatePairDayData, updateTokenDayData, updateBullionFXDayData, updatePa
 import { findUsdPerToken, getTrackedVolumeUSD, getTrackedLiquidityUSD } from "./pricing";
 import { convertTokenToDecimal, ADDRESS_ZERO, BULLIONFX_FACTORY_ADDRESS, ONE_BI, ZERO_BD, BI_18 } from "./utils";
 
+const START_BLOCK_FOR_SUSHI_TOKEN_SWAPS = 10977288;
+
 function isCompleteMint(mintId: string): boolean {
   let mint = MintEvent.load(mintId);
   if (mint === null) {
@@ -76,7 +78,7 @@ export function handleTransfer(event: Transfer): void {
 
       // save entities
 
-      if (pair.isBullionFX) {
+      if (pair.isBullionFX === true) {
         transaction.save();
       }
     }
@@ -96,14 +98,14 @@ export function handleTransfer(event: Transfer): void {
     burn.sender = event.params.from;
     burn.needsComplete = true;
     burn.transaction = transaction.id;
-    burn.save();
-
+    
     // TODO: Consider using .concat() for handling array updates to protect
     // against unintended side effects for other code paths.
     burns.push(burn.id);
     transaction.burns = burns;
-
-    if (pair.isBullionFX) {
+    
+    if (pair.isBullionFX === true) {
+      burn.save();
       transaction.save();
     }
   }
@@ -163,11 +165,13 @@ export function handleTransfer(event: Transfer): void {
       mints.pop();
       transaction.mints = mints;
 
-      if (pair.isBullionFX) {
+      if (pair.isBullionFX === true) {
         transaction.save();
       }
     }
-    burn.save();
+    if (pair.isBullionFX === true) {
+      burn.save();
+    }
     // if accessing last one, replace it
     if (burn.needsComplete) {
       // TODO: Consider using .slice(0, -1).concat() to protect against
@@ -182,13 +186,13 @@ export function handleTransfer(event: Transfer): void {
     }
     transaction.burns = burns;
 
-    if (pair.isBullionFX) {
+    if (pair.isBullionFX === true) {
       transaction.save();
     }
   }
 
 
-  if (pair.isBullionFX) {
+  if (pair.isBullionFX === true) {
     transaction.save();
   }
 }
@@ -259,7 +263,7 @@ export function handleSync(event: Sync): void {
     .times(token0.derivedUSD as BigDecimal)
     .plus(pair.reserve1.times(token1.derivedUSD as BigDecimal));
 
-  if (pair.isBullionFX) {
+  if (pair.isBullionFX === true) {
     // use tracked amounts globally
     // pancake.totalLiquidityBNB = pancake.totalLiquidityBNB.plus(trackedLiquidityBNB);
     bullionfx.totalLiquidityUSD = bullionfx.totalLiquidityUSD.plus(trackedLiquidityUSD);
@@ -343,7 +347,9 @@ export function handleMint(event: Mint): void {
   mint.amount1 = token1Amount as BigDecimal;
   mint.logIndex = event.logIndex;
   mint.amountUSD = amountTotalUSD as BigDecimal;
-  mint.save();
+  if (pair.isBullionFX === true) {
+    mint.save();
+  }
 
   updatePairDayData(event);
   updatePairHourData(event);
@@ -419,7 +425,9 @@ export function handleBurn(event: Burn): void {
   // burn.to = event.params.to
   burn.logIndex = event.logIndex;
   burn.amountUSD = amountTotalUSD as BigDecimal;
-  burn.save();
+  if (pair.isBullionFX === true) {
+    burn.save();
+  }
 
   updatePairDayData(event);
   updatePairHourData(event);
@@ -546,7 +554,9 @@ export function handleSwap(event: Swap): void {
   swap.logIndex = event.logIndex;
   // use the tracked amount if we have it
   swap.amountUSD = trackedAmountUSD === ZERO_BD ? derivedAmountUSD : trackedAmountUSD;
-  swap.save();
+  if (event.block.number.gt(new BigInt(START_BLOCK_FOR_SUSHI_TOKEN_SWAPS))) {
+    swap.save();
+  }
 
   // update the transaction
 
@@ -555,7 +565,7 @@ export function handleSwap(event: Swap): void {
   swaps.push(swap.id);
   transaction.swaps = swaps;
 
-  if (pair.isBullionFX) {
+  if (pair.isBullionFX === true) {
     transaction.save();
   }
 
