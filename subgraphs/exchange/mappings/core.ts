@@ -61,7 +61,7 @@ export function handleTransfer(event: Transfer): void {
     pair.save();
 
     // create new mint if no mints so far or if last one is done already
-    if (mints.length === 0 || isCompleteMint(mints[mints.length - 1])) {
+    if (pair.isBullionFX === true && (mints.length === 0 || isCompleteMint(mints[mints.length - 1]))) {
       let mint = new MintEvent(
         event.transaction.hash.toHex().concat("-").concat(BigInt.fromI32(mints.length).toString())
       );
@@ -77,15 +77,12 @@ export function handleTransfer(event: Transfer): void {
       transaction.mints = mints.concat([mint.id]);
 
       // save entities
-
-      if (pair.isBullionFX === true) {
-        transaction.save();
-      }
+      transaction.save();
     }
   }
 
   // case where direct send first on BNB withdrawals
-  if (event.params.to.toHex() == pair.id) {
+  if (pair.isBullionFX === true && event.params.to.toHex() == pair.id) {
     let burns = transaction.burns;
     let burn = new BurnEvent(
       event.transaction.hash.toHex().concat("-").concat(BigInt.fromI32(burns.length).toString())
@@ -103,11 +100,8 @@ export function handleTransfer(event: Transfer): void {
     // against unintended side effects for other code paths.
     burns.push(burn.id);
     transaction.burns = burns;
-    
-    if (pair.isBullionFX === true) {
-      burn.save();
-      transaction.save();
-    }
+    burn.save();
+    transaction.save();
   }
 
   // burn
@@ -148,7 +142,7 @@ export function handleTransfer(event: Transfer): void {
     }
 
     // if this logical burn included a fee mint, account for this
-    if (mints.length !== 0 && !isCompleteMint(mints[mints.length - 1])) {
+    if (pair.isBullionFX === true && mints.length !== 0 && !isCompleteMint(mints[mints.length - 1])) {
       let mint = MintEvent.load(mints[mints.length - 1]);
       if (mint === null) {
         log.error(`handleTransfer: mint event not found`, []);
@@ -164,10 +158,7 @@ export function handleTransfer(event: Transfer): void {
       // side effects for other code paths.
       mints.pop();
       transaction.mints = mints;
-
-      if (pair.isBullionFX === true) {
-        transaction.save();
-      }
+      transaction.save();
     }
     if (pair.isBullionFX === true) {
       burn.save();
@@ -185,12 +176,10 @@ export function handleTransfer(event: Transfer): void {
       burns.push(burn.id);
     }
     transaction.burns = burns;
-
     if (pair.isBullionFX === true) {
       transaction.save();
     }
   }
-
 
   if (pair.isBullionFX === true) {
     transaction.save();
