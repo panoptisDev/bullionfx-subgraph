@@ -3,9 +3,11 @@
   "description": "BullionFX Subgraph",
   "version": "2.0.0",
   "scripts": {
+    "init": "graph init --studio bullionfx-dex",
+    "auth": "graph auth --studio 2c1b67644d26249857c4bd640947de91",
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --studio fullstackdevss/bullionfx-dex",
+    "deploy": "graph deploy --studio bullionfx-dex",
     "create-local": "graph create --node http://localhost:8020/ fullstackdevss/bullionfx-dex",
     "remove-local": "graph remove --node http://localhost:8020/ fullstackdevss/bullionfx-dex",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 fullstackdevss/bullionfx-dex"
