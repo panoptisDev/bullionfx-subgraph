@@ -15,7 +15,7 @@ import { updatePairDayData, updateTokenDayData, updateBullionFXDayData, updatePa
 import { findUsdPerToken, getTrackedVolumeUSD, getTrackedLiquidityUSD } from "./pricing";
 import { convertTokenToDecimal, ADDRESS_ZERO, BULLIONFX_FACTORY_ADDRESS, ONE_BI, ZERO_BD, BI_18 } from "./utils";
 
-const START_BLOCK_FOR_SUSHI_TOKEN_SWAPS = 10977288;
+const START_BLOCK_FOR_SUSHI_TOKEN_SWAPS = 16320793;
 
 function isCompleteMint(mintId: string): boolean {
   let mint = MintEvent.load(mintId);
