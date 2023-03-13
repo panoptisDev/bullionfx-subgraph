@@ -8,6 +8,7 @@
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "graph deploy --studio bullionfx-dex",
+    "deploy-hosted-service": "graph deploy --product hosted-service enjoydream420/bullionfx_main_exchange",
     "create-local": "graph create --node http://localhost:8020/ fullstackdevss/bullionfx-dex",
     "remove-local": "graph remove --node http://localhost:8020/ fullstackdevss/bullionfx-dex",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 fullstackdevss/bullionfx-dex"
